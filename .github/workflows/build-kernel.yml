@@ -155,14 +155,11 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update -qq
-          # Kept deliberately lean. The historical list here was copied from the
-          # full AOSP platform build docs and pulled in ~40 packages a kernel
-          # build never touches, several of which no longer exist on current
-          # Ubuntu (python2, lib32ncurses5-dev, ...).
+          # Thêm binutils-aarch64-linux-gnu để có linker cho ARM64
           sudo apt-get install -y --no-install-recommends \
             bc bison build-essential ccache cpio curl device-tree-compiler flex \
             git libelf-dev libssl-dev lz4 make python3 rsync unzip zip zstd \
-            libncurses-dev
+            libncurses-dev binutils-aarch64-linux-gnu
           mkdir -p "$WORKSPACE"
 
       - name: Set up toolchain
@@ -200,7 +197,11 @@ jobs:
           max-size: 2G
 
       - name: Build kernel
-        run: bash scripts/build.sh all
+        run: |
+          # Ép buộc sử dụng cross-compiler của ARM64 thay vì của máy chủ x86_64
+          export CROSS_COMPILE=aarch64-linux-gnu-
+          export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+          bash scripts/build.sh all
 
       - name: Package artifacts
         run: bash scripts/package.sh all
