@@ -178,6 +178,15 @@ jobs:
       - name: Apply kernel patches
         run: bash scripts/patches.sh all
 
+              - name: Patch vDSO assembly for LLVM IAS
+        run: |
+          cd kernel_workspace/android-kernel
+          TARGET_FILE="arch/arm64/kernel/vdso/gettimeofday.S"
+          if [ -f "$TARGET_FILE" ]; then
+            echo "Patching $TARGET_FILE to remove comma in macro calls..."
+            sed -i 's/clock_gettime_return, shift=1/clock_gettime_return shift=1/g' "$TARGET_FILE"
+          fi
+
       - name: Set up ccache
         if: env.ENABLE_CCACHE == 'true'
         uses: hendrikmuhs/ccache-action@v1.2
